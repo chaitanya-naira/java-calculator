@@ -1,18 +1,13 @@
 # ---- Build stage ----
-FROM eclipse-temurin:17-jdk AS build
+FROM maven:3.9.8-eclipse-temurin-17 AS build
 WORKDIR /app
-
-# Copy source code
+COPY pom.xml .
 COPY src ./src
-
-# Compile app
-RUN javac -d out src/main/java/Calculator.java
+RUN mvn -q -DskipTests=false test package
 
 # ---- Run stage ----
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-
-COPY --from=build /app/out ./out
-
-ENTRYPOINT ["java", "-cp", "out", "Calculator"]
-CMD ["10", "20"]
+COPY --from=build /app/target/java-calculator-1.0.0.jar app.jar
+ENTRYPOINT ["java","-jar","app.jar"]
+CMD ["10","20"]
